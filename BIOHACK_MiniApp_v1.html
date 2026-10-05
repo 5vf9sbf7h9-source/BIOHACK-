@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BIOHACK — Habit Tracker</title>
+<style>
+:root{
+  --bg:#f5f6f4; --card:#ffffff; --text:#18201f; --muted:#78817f;
+  --accent:#6e8f83; --accent2:#dfe9e4; --line:#e6e9e7;
+  --shadow:0 8px 28px rgba(24,32,31,.07); --radius:22px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text)}
+button,input{font:inherit}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:22px 18px 96px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+.logo{font-weight:800;letter-spacing:1.7px;font-size:20px}
+.date{font-size:13px;color:var(--muted)}
+h1{font-size:31px;line-height:1.1;margin:0 0 8px}
+.subtitle{color:var(--muted);margin:0 0 24px;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.metric .icon{font-size:21px}
+.metric .label{font-size:13px;color:var(--muted);margin-top:12px}
+.metric .value{font-size:25px;font-weight:750;margin-top:4px}
+.metric small{color:var(--muted);font-size:12px}
+.section{margin-top:14px}
+.section-title{font-size:14px;font-weight:750;margin:0 0 10px}
+.primary{width:100%;border:0;border-radius:17px;background:var(--text);color:white;padding:15px;font-weight:700;cursor:pointer}
+.secondary{border:1px solid var(--line);background:white;border-radius:14px;padding:11px 13px;cursor:pointer}
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;justify-content:center;gap:5px;padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}
+.nav button{border:0;background:transparent;color:var(--muted);padding:9px 13px;border-radius:14px;font-size:11px;cursor:pointer}
+.nav button.active{background:var(--accent2);color:var(--text);font-weight:700}
+.nav span{display:block;font-size:18px;margin-bottom:2px}
+.page{display:none}.page.active{display:block}
+.bar{height:9px;background:#edf0ee;border-radius:99px;overflow:hidden;margin-top:9px}.fill{height:100%;background:var(--accent);border-radius:99px}
+.row{display:flex;justify-content:space-between;align-items:center;margin:14px 0}
+.row strong{font-size:15px}.row span{font-size:13px;color:var(--muted)}
+.chart{height:170px;display:flex;align-items:flex-end;gap:10px;padding:15px 4px 4px}
+.barcol{flex:1;text-align:center}.barvalue{background:var(--accent);border-radius:9px 9px 3px 3px;min-height:12px}.barcol small{display:block;color:var(--muted);font-size:10px;margin-top:7px}
+.lesson{display:flex;gap:14px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}.lesson:last-child{border-bottom:0}
+.circle{width:42px;height:42px;border-radius:14px;background:var(--accent2);display:grid;place-items:center;font-size:20px}
+.lesson b{font-size:15px}.lesson p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.profile{display:flex;align-items:center;gap:15px;margin-bottom:20px}.avatar{width:62px;height:62px;border-radius:20px;background:var(--text);color:white;display:grid;place-items:center;font-size:25px}
+.tag{display:inline-block;padding:6px 9px;border-radius:99px;background:var(--accent2);font-size:11px;margin-top:6px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:flex-end;z-index:10}.modal.show{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:520px;margin:auto;border-radius:26px 26px 0 0;padding:22px 18px 30px}
+.sheet h2{margin:0 0 16px;font-size:22px}.field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
+.field input{width:100%;border:1px solid var(--line);background:white;border-radius:13px;padding:12px;outline:none}
+.note{font-size:12px;color:var(--muted);line-height:1.45}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="logo">BIOHACK</div>
+  <div class="date" id="date"></div>
+</header>
+
+<section id="today" class="page active">
+  <h1>Good morning.</h1>
+  <p class="subtitle">Understand your habits. Build awareness.</p>
+  <div class="grid">
+    <div class="card metric"><div class="icon">☾</div><div class="label">SLEEP</div><div class="value" id="sleepVal">8h 10m</div><small>quality 8/10</small></div>
+    <div class="card metric"><div class="icon">⚡</div><div class="label">ENERGY</div><div class="value" id="energyVal">8/10</div><small>morning check-in</small></div>
+    <div class="card metric"><div class="icon">◎</div><div class="label">FOCUS</div><div class="value" id="focusVal">7/10</div><small>study focus</small></div>
+    <div class="card metric"><div class="icon">↗</div><div class="label">MOVE</div><div class="value" id="moveVal">✓</div><small>activity logged</small></div>
+  </div>
+  <div class="section card">
+    <div class="section-title">DIGITAL — evening screen time</div>
+    <div class="row"><strong id="screenVal">1h 20m</strong><span>target: awareness, not perfection</span></div>
+    <div class="bar"><div class="fill" style="width:55%"></div></div>
+  </div>
+  <div class="section"><button class="primary" onclick="openModal()">＋ Add today's data</button></div>
+  <div class="section card">
+    <div class="section-title">Today’s insight</div>
+    <p class="note">Small observations become useful when you track them consistently. BIOHACK shows patterns in your own data — it does not diagnose or judge you.</p>
+  </div>
+</section>
+
+<section id="insights" class="page">
+  <h1>My insights</h1>
+  <p class="subtitle">A simple view of your week.</p>
+  <div class="card">
+    <div class="section-title">Sleep duration</div>
+    <div class="chart">
+      <div class="barcol"><div class="barvalue" style="height:95px"></div><small>M</small></div>
+      <div class="barcol"><div class="barvalue" style="height:115px"></div><small>T</small></div>
+      <div class="barcol"><div class="barvalue" style="height:100px"></div><small>W</small></div>
+      <div class="barcol"><div class="barvalue" style="height:125px"></div><small>T</small></div>
+      <div class="barcol"><div class="barvalue" style="height:110px"></div><small>F</small></div>
+      <div class="barcol"><div class="barvalue" style="height:130px"></div><small>S</small></div>
+      <div class="barcol"><div class="barvalue" style="height:118px"></div><small>S</small></div>
+    </div>
+  </div>
+  <div class="section grid">
+    <div class="card"><div class="label" style="color:var(--muted);font-size:12px">AVG SLEEP</div><div class="value" style="font-size:24px;font-weight:750;margin-top:6px">8h 04m</div></div>
+    <div class="card"><div class="label" style="color:var(--muted);font-size:12px">AVG FOCUS</div><div class="value" style="font-size:24px;font-weight:750;margin-top:6px">7.6/10</div></div>
+  </div>
+  <div class="section card">
+    <div class="section-title">Your pattern</div>
+    <p class="note">On days with longer sleep, your recorded energy was also higher. This is an observation from your entries, not proof of cause and effect.</p>
+  </div>
+</section>
+
+<section id="learn" class="page">
+  <h1>Learn</h1>
+  <p class="subtitle">Evidence-based habits, without extreme biohacking.</p>
+  <div class="card">
+    <div class="lesson"><div class="circle">☾</div><div><b>Sleep</b><p>Why regular sleep matters for learning and recovery.</p></div></div>
+    <div class="lesson"><div class="circle">◎</div><div><b>Focus</b><p>Study blocks, breaks and reducing distractions.</p></div></div>
+    <div class="lesson"><div class="circle">↗</div><div><b>Movement</b><p>Everyday activity as part of a balanced routine.</p></div></div>
+    <div class="lesson"><div class="circle">📱</div><div><b>Digital habits</b><p>Notice evening screen patterns without guilt.</p></div></div>
+  </div>
+  <div class="section card">
+    <div class="section-title">MYTH / FACT</div>
+    <p style="font-weight:700;margin-bottom:7px">“Sleeping less helps you become more productive.”</p>
+    <p class="note"><b>MYTH.</b> Cutting sleep is not a safe productivity strategy. BIOHACK focuses on sustainable habits rather than extreme challenges.</p>
+  </div>
+</section>
+
+<section id="profile" class="page">
+  <h1>Profile</h1>
+  <p class="subtitle">Your BIOHACK space.</p>
+  <div class="profile">
+    <div class="avatar">🧬</div>
+    <div><b>My BIOHACK</b><br><span class="tag">student prototype</span></div>
+  </div>
+  <div class="card">
+    <div class="row"><strong>Data privacy</strong><span>Local prototype</span></div>
+    <div class="row"><strong>Health score</strong><span>Not used</span></div>
+    <div class="row"><strong>Weight tracking</strong><span>Not used</span></div>
+  </div>
+  <div class="section card">
+    <div class="section-title">About the project</div>
+    <p class="note">BIOHACK is a school research prototype designed to help students observe everyday habits such as sleep, focus, movement and evening digital use.</p>
+  </div>
+</section>
+
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="show('today',this)"><span>⌂</span>Today</button>
+  <button onclick="show('insights',this)"><span>◒</span>Insights</button>
+  <button onclick="show('learn',this)"><span>✦</span>Learn</button>
+  <button onclick="show('profile',this)"><span>○</span>Profile</button>
+</nav>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="sheet">
+    <h2>Today's check-in</h2>
+    <div class="field"><label>SLEEP (hours)</label><input id="sleepInput" type="number" min="0" max="16" step=".1" placeholder="e.g. 8"></div>
+    <div class="field"><label>ENERGY (1–10)</label><input id="energyInput" type="number" min="1" max="10" placeholder="8"></div>
+    <div class="field"><label>FOCUS (1–10)</label><input id="focusInput" type="number" min="1" max="10" placeholder="7"></div>
+    <div class="field"><label>EVENING SCREEN TIME (hours)</label><input id="screenInput" type="number" min="0" max="12" step=".1" placeholder="1.3"></div>
+    <button class="primary" onclick="saveData()">Save check-in</button>
+    <p class="note" style="margin-top:12px">For the school prototype, avoid entering medical information or identifying details.</p>
+  </div>
+</div>
+
+<script>
+const d=new Date();
+document.getElementById('date').textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+function show(id,btn){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active'); window.scrollTo({top:0,behavior:'smooth'});
+}
+function openModal(){document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function saveData(){
+ const s=parseFloat(document.getElementById('sleepInput').value);
+ const e=parseInt(document.getElementById('energyInput').value);
+ const f=parseInt(document.getElementById('focusInput').value);
+ const sc=parseFloat(document.getElementById('screenInput').value);
+ if(s>0)document.getElementById('sleepVal').textContent=s.toFixed(1).replace('.0','')+'h';
+ if(e>=1&&e<=10)document.getElementById('energyVal').textContent=e+'/10';
+ if(f>=1&&f<=10)document.getElementById('focusVal').textContent=f+'/10';
+ if(sc>=0)document.getElementById('screenVal').textContent=sc.toFixed(1).replace('.0','')+'h';
+ closeModal();
+}
+</script>
+</body>
+</html>
